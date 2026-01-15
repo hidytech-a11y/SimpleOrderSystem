@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="SimpleOrderSystem.Application/SimpleOrderSystem.Application.csproj" />
+  <Project Path="SimpleOrderSystem.Domain/SimpleOrderSystem.Domain.csproj" />
+  <Project Path="SimpleOrderSystem.Infrastructure/SimpleOrderSystem.Infrastructure.csproj" />
+  <Project Path="SimpleOrderSystem.Web/SimpleOrderSystem.Web.csproj" />
+</Solution>
