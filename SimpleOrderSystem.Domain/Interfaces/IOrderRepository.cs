@@ -6,5 +6,10 @@ namespace SimpleOrderSystem.Domain.Interfaces
     {
         Task AddAsync(Order order);
         Task<IEnumerable<Order>> GetByUserIdAsync(string userId);
+
+        Task<IEnumerable<Order>> GetAllAsync();
+
+        Task<Order> GetByIdAsync(Guid id);
+        Task SaveChangesAsync();
     }
 }

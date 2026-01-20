@@ -1,5 +1,6 @@
 ﻿using SimpleOrderSystem.Application.Interfaces;
 using SimpleOrderSystem.Domain.Entities;
+using SimpleOrderSystem.Domain.Enums;
 using SimpleOrderSystem.Domain.Interfaces;
 
 namespace SimpleOrderSystem.Application.Services;
@@ -20,7 +21,7 @@ public class OrderService : IOrderService
         _orderNumberGenerator = orderNumberGenerator;
     }
 
-    public async Task<Order> CreateOrderAsync(string userId, Dictionary<int, int> productQuantities)
+    public async Task<Order> CreateOrderAsync(string userId, Dictionary<Guid, int> productQuantities)
     {
         if (!productQuantities.Any())
             throw new ArgumentException("Order must contain at least one product.");
@@ -49,5 +50,22 @@ public class OrderService : IOrderService
     public async Task<IEnumerable<Order>> GetOrdersForUserAsync(string userId)
     {
         return await _orderRepository.GetByUserIdAsync(userId);
+    }
+
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+    {
+        return await _orderRepository.GetAllAsync();
+    }
+
+    public async Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+            throw new InvalidOperationException("Order not found");
+
+        order.UpdateStatus(status);
+
+        await _orderRepository.SaveChangesAsync();
     }
 }

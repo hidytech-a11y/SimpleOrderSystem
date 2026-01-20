@@ -14,14 +14,19 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<Product?> GetByIdAsync(int id)
-    {
-        return await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
-    }
-
     public async Task<IEnumerable<Product>> GetAllAsync()
-    {
-        return await _context.Products.ToListAsync();
-    }
+        => await _context.Products.ToListAsync();
 
+    public async Task<Product?> GetByIdAsync(Guid id)
+        => await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+
+    public async Task AddAsync(Product product)
+        => await _context.Products.AddAsync(product);
+
+    public void Remove(Product product)
+        => _context.Products.Remove(product);
+
+    public async Task SaveChangesAsync()
+        => await _context.SaveChangesAsync();
 }
+

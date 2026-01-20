@@ -1,12 +1,12 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimpleOrderSystem.Application.Interfaces;
 using SimpleOrderSystem.Application.Services;
 using SimpleOrderSystem.Domain.Interfaces;
 using SimpleOrderSystem.Infrastructure.Data;
 using SimpleOrderSystem.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Identity;
 using SimpleOrderSystem.Web.Middleware;
-
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    sql => sql.EnableRetryOnFailure()));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
@@ -29,31 +30,57 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddSingleton<IOrderNumberGenerator, OrderNumberGenerator>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
-
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.SlidingExpiration = true;
+});
 
 var app = builder.Build();
+
 
 //Ensure roles exist before users login
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await DbInitializer.SeedRolesAsync(services);
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await ProductSeeder.SeedAsync(context);
+    try
+    {
+        // Ensure database is created / migrations applied (will still fail if connection invalid)
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        await context.Database.MigrateAsync();
+
+        await DbInitializer.SeedRolesAsync(services);
+        await AdminSeeder.SeedAdminAsync(services);
+        await ProductSeeder.SeedAsync(
+            services.GetRequiredService<ApplicationDbContext>());
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Startup seeding failed");
+    }
 }
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+}
+else
+{
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();

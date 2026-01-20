@@ -21,10 +21,22 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, "Unhandled exception");
 
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsync("An unexpected error occurred.");
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+            if (context.Request.Path.StartsWithSegments("/api"))
+            {
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    error = "An internal server error occurred."
+                });
+            }
+            else
+            {
+                context.Response.Redirect("/Home/Error");
+            }
         }
+
     }
 }

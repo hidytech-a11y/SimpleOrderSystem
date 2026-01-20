@@ -21,7 +21,7 @@ public class OrdersApiController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] Dictionary<int, int> products)
+    public async Task<IActionResult> CreateOrder([FromBody] Dictionary<Guid, int> products)
     {
         var userId = User.Identity!.Name!;
         var order = await _orderService.CreateOrderAsync(userId, products);

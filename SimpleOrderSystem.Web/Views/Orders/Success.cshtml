@@ -1,0 +1,29 @@
+﻿<div class="container mt-5 text-center">
+    <div class="card shadow-sm p-4">
+        <h2 class="text-success mb-3">Order Placed Successfully 🎉</h2>
+
+        <p class="lead">
+            Thank you for your order!
+        </p>
+
+        <p>
+            Your order number is:
+        </p>
+
+        <h4 class="fw-bold text-primary">
+            @ViewBag.OrderNumber
+        </h4>
+
+        <div class="mt-4">
+            <a class="btn btn-primary me-2"
+               asp-controller="Orders" asp-action="Index">
+                View My Orders
+            </a>
+
+            <a class="btn btn-outline-secondary"
+               asp-controller="Products" asp-action="Index">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div> 

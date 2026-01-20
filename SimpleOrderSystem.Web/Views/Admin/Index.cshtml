@@ -2,17 +2,17 @@
 @model IEnumerable<SimpleOrderSystem.Domain.Entities.Order>
 
 <div class="container mt-4">
-    <h2 class="mb-4">My Orders</h2>
+    <h2 class="mb-4 text-danger">Admin Dashboard — All Orders</h2>
 
     @if (!Model.Any())
     {
         <div class="alert alert-info">
-            You have not placed any orders yet.
+            No orders have been placed yet.
         </div>
     }
     else
     {
-        <div class="accordion" id="ordersAccordion">
+        <div class="accordion" id="adminOrdersAccordion">
             @foreach (var order in Model)
             {
                 <div class="accordion-item mb-2">
@@ -20,8 +20,9 @@
                         <button class="accordion-button collapsed"
                                 type="button"
                                 data-bs-toggle="collapse"
-                                data-bs-target="#order-@order.Id">
+                                data-bs-target="#admin-order-@order.Id">
                             <strong>@order.OrderNumber</strong>
+                            &nbsp; — @order.UserId
                             &nbsp; — @order.OrderDate.ToShortDateString()
                             &nbsp; — ₦@order.TotalAmount.ToString("N2")
 
@@ -33,15 +34,16 @@
                         </button>
                     </h2>
 
-                    <div id="order-@order.Id"
+                    <div id="admin-order-@order.Id"
                          class="accordion-collapse collapse">
                         <div class="accordion-body">
 
-                            <table class="table table-sm table-bordered">
+                            <!-- ORDER ITEMS -->
+                            <table class="table table-sm table-bordered mb-3">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Product ID</th>
-                                        <th class="text-center">Quantity</th>
+                                        <th class="text-center">Qty</th>
                                         <th class="text-end">Unit Price</th>
                                         <th class="text-end">Total</th>
                                     </tr>
@@ -54,11 +56,32 @@
                                             <td class="text-center">@item.Quantity</td>
                                             <td class="text-end">₦@item.UnitPrice.ToString("N2")</td>
                                             <td class="text-end">
-                                                ₦@(item.Quantity* item.UnitPrice) </td>
+                                                ₦@(item.Quantity* item.UnitPrice).ToString("N2")
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
+
+                            <!-- UPDATE STATUS -->
+                            <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center gap-2">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="orderId" value="@order.Id" />
+
+                                <select name="status" class="form-select w-auto">
+                                    @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                                    {
+                                        <option value="@status" selected="@(order.Status == status)">
+                                            @status
+                                        </option>
+                                    }
+                                </select>
+
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Update Status
+                                </button>
+                            </form>
 
                         </div>
                     </div>

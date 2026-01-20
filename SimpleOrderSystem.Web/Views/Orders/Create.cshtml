@@ -1,0 +1,48 @@
+﻿@model SimpleOrderSystem.Web.Models.CreateOrderViewModel
+
+<div class="container mt-4">
+    <h2>Create Order</h2>
+
+    @Html.AntiForgeryToken()
+
+    <form method="post">
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-center">Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Products.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model.Products[i].ProductName
+                            <input type="hidden" asp-for="Products[i].ProductId" />
+                            <input type="hidden" asp-for="Products[i].ProductName" />
+                            <input type="hidden" asp-for="Products[i].Price" />
+                        </td>
+                        <td class="text-end">
+                            ₦@Model.Products[i].Price.ToString("N2")
+                        </td>
+                        <td class="text-center">
+                            <input asp-for="Products[i].Quantity"
+                                   class="form-control text-center"
+                                   min="0" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="text-danger mb-3">
+            @Html.ValidationSummary()
+        </div>
+
+        <button class="btn btn-success btn-lg">
+            Place Order
+        </button>
+    </form>
+</div>
