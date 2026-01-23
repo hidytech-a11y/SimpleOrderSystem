@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimpleOrderSystem.Application.Interfaces;
 using SimpleOrderSystem.Application.Services;
 using SimpleOrderSystem.Domain.Interfaces;
 using SimpleOrderSystem.Infrastructure.Data;
+using SimpleOrderSystem.Infrastructure.Data.Repositories;
 using SimpleOrderSystem.Infrastructure.Repositories;
 using SimpleOrderSystem.Web.Middleware;
-using Microsoft.AspNetCore.Http;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,10 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddSingleton<IOrderNumberGenerator, OrderNumberGenerator>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IOrderStatusAuditRepository, OrderStatusAuditRepository>();
+
+
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -72,7 +79,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+//Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -82,6 +89,8 @@ else
 {
     app.UseDeveloperExceptionPage();
 }
+
+//app.UseDeveloperExceptionPage();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

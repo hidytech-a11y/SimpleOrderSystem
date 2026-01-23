@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SimpleOrderSystem.Application\SimpleOrderSystem.Application.csproj" />
+    <ProjectReference Include="..\SimpleOrderSystem.Domain\SimpleOrderSystem.Domain.csproj" />
     <ProjectReference Include="..\SimpleOrderSystem.Infrastructure\SimpleOrderSystem.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -1,92 +1,76 @@
-﻿@using SimpleOrderSystem.Domain.Enums
-@model IEnumerable<SimpleOrderSystem.Domain.Entities.Order>
+﻿@model SimpleOrderSystem.Application.DTOs.AdminDashboardDto
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-danger">Admin Dashboard — All Orders</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-danger mb-0">Admin Dashboard</h2>
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">
-            No orders have been placed yet.
+        <!-- Quick Admin Actions -->
+        <div>
+            <a asp-controller="Admin"
+               asp-action="Orders"
+               class="btn btn-outline-primary me-2">
+                Manage Orders
+            </a>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-outline-dark">
+                Manage Products
+            </a>
         </div>
-    }
-    else
-    {
-        <div class="accordion" id="adminOrdersAccordion">
-            @foreach (var order in Model)
-            {
-                <div class="accordion-item mb-2">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#admin-order-@order.Id">
-                            <strong>@order.OrderNumber</strong>
-                            &nbsp; — @order.UserId
-                            &nbsp; — @order.OrderDate.ToShortDateString()
-                            &nbsp; — ₦@order.TotalAmount.ToString("N2")
+    </div>
 
-                            <span class="badge ms-2
-                                        @(order.Status == OrderStatus.Completed ? "bg-success" :
-                                                                    order.Status == OrderStatus.Cancelled ? "bg-danger" : "bg-warning")">
-                                @order.Status
-                            </span>
-                        </button>
-                    </h2>
-
-                    <div id="admin-order-@order.Id"
-                         class="accordion-collapse collapse">
-                        <div class="accordion-body">
-
-                            <!-- ORDER ITEMS -->
-                            <table class="table table-sm table-bordered mb-3">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Product ID</th>
-                                        <th class="text-center">Qty</th>
-                                        <th class="text-end">Unit Price</th>
-                                        <th class="text-end">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in order.OrderItems)
-                                    {
-                                        <tr>
-                                            <td>@item.ProductId</td>
-                                            <td class="text-center">@item.Quantity</td>
-                                            <td class="text-end">₦@item.UnitPrice.ToString("N2")</td>
-                                            <td class="text-end">
-                                                ₦@(item.Quantity* item.UnitPrice).ToString("N2")
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-
-                            <!-- UPDATE STATUS -->
-                            <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center gap-2">
-                                @Html.AntiForgeryToken()
-
-                                <input type="hidden" name="orderId" value="@order.Id" />
-
-                                <select name="status" class="form-select w-auto">
-                                    @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
-                                    {
-                                        <option value="@status" selected="@(order.Status == status)">
-                                            @status
-                                        </option>
-                                    }
-                                </select>
-
-                                <button type="submit" class="btn btn-sm btn-primary">
-                                    Update Status
-                                </button>
-                            </form>
-
-                        </div>
-                    </div>
+    <div class="row">
+        <!-- TOTAL PRODUCTS -->
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase">Total Products</h6>
+                    <h3 class="fw-bold">@Model.TotalProducts</h3>
                 </div>
-            }
+            </div>
         </div>
-    }
+
+        <!-- TOTAL ORDERS -->
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase">Total Orders</h6>
+                    <h3 class="fw-bold">@Model.TotalOrders</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDING ORDERS -->
+        <div class="col-md-3">
+            <div class="card text-dark bg-warning mb-3 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase">Pending Orders</h6>
+                    <h3 class="fw-bold">@Model.PendingOrders</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTAL REVENUE -->
+        <div class="col-md-3">
+            <div class="card text-white bg-dark mb-3 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase">Total Revenue</h6>
+                    <h3 class="fw-bold">
+                        ₦@Model.TotalRevenue.ToString("N2")
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional Info -->
+    <div class="alert alert-info mt-3">
+        Use the <strong>Manage Orders</strong> button to update order statuses,
+        and <strong>Manage Products</strong> to add or edit products.
+    </div>
 </div>

@@ -56,7 +56,16 @@
                                 </a>
                             </li>
                         }
-
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning"
+                                   asp-controller="Admin"
+                                   asp-action="Orders">
+                                    Orders
+                                </a>
+                            </li>
+                        }
 
                     </ul>
 

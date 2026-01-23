@@ -13,10 +13,12 @@ public class Order
     private readonly List<OrderItem> _orderItems = new();
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
 
+    private readonly List<OrderStatusAudit> _statusAudits = new();
+    public IReadOnlyCollection<OrderStatusAudit> StatusAudits => _statusAudits;
+
     public OrderStatus Status { get; private set; }
 
-
-    private Order() { }
+    private Order() { } // EF Core
 
     public Order(string orderNumber, string userId)
     {
@@ -27,12 +29,31 @@ public class Order
         Status = OrderStatus.Pending;
     }
 
-
-    public void UpdateStatus(OrderStatus status)
+    /* ===============================
+     * STATUS UPDATE (WITH AUDIT)
+     * =============================== */
+    public void UpdateStatus(OrderStatus newStatus, string changedBy)
     {
-        Status = status; 
+        if (Status == OrderStatus.Completed || Status == OrderStatus.Cancelled)
+            throw new InvalidOperationException(
+                "Completed or cancelled orders cannot be modified.");
+
+        if (Status == newStatus)
+            return;
+
+        var oldStatus = Status;
+        Status = newStatus;
+
+        _statusAudits.Add(new OrderStatusAudit(
+            Id,
+            changedBy,
+            oldStatus,
+            newStatus));
     }
 
+    /* ===============================
+     * ORDER ITEMS
+     * =============================== */
     public void AddItem(Guid productId, int quantity, decimal unitPrice)
     {
         var item = new OrderItem(productId, quantity, unitPrice);
@@ -44,5 +65,4 @@ public class Order
     {
         TotalAmount = _orderItems.Sum(i => i.GetTotal());
     }
-
 }

@@ -1,0 +1,162 @@
+﻿@model SimpleOrderSystem.Application.DTOs.PagedResult<SimpleOrderSystem.Domain.Entities.Order>
+
+@using SimpleOrderSystem.Domain.Enums
+@using SimpleOrderSystem.Web.Extensions
+
+@{
+    ViewData["Title"] = "Admin — Manage Orders";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">Admin — Manage Orders</h2>
+
+    <!-- SEARCH & FILTER -->
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input name="searchTerm"
+                   value="@ViewBag.SearchTerm"
+                   class="form-control"
+                   placeholder="Search by order # or user" />
+        </div>
+
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                {
+                    <option value="@s"
+                            selected="@(ViewBag.Status != null && ViewBag.Status.Equals(s))">
+                        @s
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">
+                Filter
+            </button>
+        </div>
+    </form>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="alert alert-info">No orders found.</div>
+    }
+    else
+    {
+        <div class="accordion" id="adminOrdersAccordion">
+            @foreach (var order in Model.Items)
+            {
+                <div class="accordion-item mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#admin-order-@order.Id">
+
+                            <span>
+                                <strong>@order.OrderNumber</strong>
+                                &nbsp; — @order.UserId
+                                &nbsp; — @order.OrderDate.ToShortDateString()
+                                &nbsp; — ₦@order.TotalAmount.ToString("N2")
+                            </span>
+
+                            <span class="badge ms-3 @order.Status.ToBadgeClass()">
+                                @order.Status
+                            </span>
+                        </button>
+                    </h2>
+
+                    <div id="admin-order-@order.Id"
+                         class="accordion-collapse collapse">
+                        <div class="accordion-body">
+
+                            <!-- ORDER TIMELINE -->
+                            <partial name="_OrderTimeline" model="order.Status" />
+
+                            <!-- ORDER ITEMS -->
+                            <table class="table table-sm table-bordered mt-3">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <tr>
+                                            <td>@item.ProductId</td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">
+                                                ₦@item.UnitPrice.ToString("N2")
+                                            </td>
+                                            <td class="text-end">
+                                                ₦@(item.Quantity* item.UnitPrice).ToString("N2")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                            <!-- UPDATE STATUS -->
+                            <form asp-action="UpdateOrderStatus"
+                                  method="post"
+                                  class="d-flex align-items-center gap-2 mt-3">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="orderId"
+                                       value="@order.Id" />
+
+                                <select name="status"
+                                        class="form-select form-select-sm w-auto">
+                                    @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                                    {
+                                        <option value="@s"
+                                                selected="@(s == order.Status)">
+                                            @s
+                                        </option>
+                                    }
+                                </select>
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-primary">
+                                    Update Status
+                                </button>
+                            </form>
+
+                            <!-- AUDIT HISTORY -->
+                            <h6 class="mt-4 text-muted">Status Change History</h6>
+                            <partial name="_OrderAuditHistory"
+                                     model="order.StatusAudits" />
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- PAGINATION -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.Page ? "active" : "")">
+                            <a class="page-link"
+                               href="?page=@i&searchTerm=@ViewBag.SearchTerm&status=@ViewBag.Status">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>

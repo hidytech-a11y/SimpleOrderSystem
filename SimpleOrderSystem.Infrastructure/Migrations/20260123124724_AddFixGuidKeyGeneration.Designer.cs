@@ -12,8 +12,8 @@ using SimpleOrderSystem.Infrastructure.Data;
 namespace SimpleOrderSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260120093810_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260123124724_AddFixGuidKeyGeneration")]
+    partial class AddFixGuidKeyGeneration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,7 +226,6 @@ namespace SimpleOrderSystem.Infrastructure.Migrations
             modelBuilder.Entity("SimpleOrderSystem.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("OrderDate")
@@ -280,10 +279,37 @@ namespace SimpleOrderSystem.Infrastructure.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("SimpleOrderSystem.Domain.Entities.OrderStatusAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NewStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OldStatus")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderStatusAudits");
+                });
+
             modelBuilder.Entity("SimpleOrderSystem.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
@@ -354,12 +380,24 @@ namespace SimpleOrderSystem.Infrastructure.Migrations
                 {
                     b.HasOne("SimpleOrderSystem.Domain.Entities.Order", null)
                         .WithMany("OrderItems")
-                        .HasForeignKey("OrderId");
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SimpleOrderSystem.Domain.Entities.OrderStatusAudit", b =>
+                {
+                    b.HasOne("SimpleOrderSystem.Domain.Entities.Order", null)
+                        .WithMany("StatusAudits")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SimpleOrderSystem.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
+
+                    b.Navigation("StatusAudits");
                 });
 #pragma warning restore 612, 618
         }

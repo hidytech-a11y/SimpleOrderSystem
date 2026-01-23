@@ -2,6 +2,7 @@
 using SimpleOrderSystem.Domain.Entities;
 using SimpleOrderSystem.Domain.Enums;
 using SimpleOrderSystem.Domain.Interfaces;
+using SimpleOrderSystem.Application.DTOs;
 
 namespace SimpleOrderSystem.Application.Services;
 
@@ -10,15 +11,19 @@ public class OrderService : IOrderService
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
     private readonly IOrderNumberGenerator _orderNumberGenerator;
+    private readonly IOrderStatusAuditRepository _auditRepository;
+    
 
     public OrderService(
         IOrderRepository orderRepository,
         IProductRepository productRepository,
-        IOrderNumberGenerator orderNumberGenerator)
+        IOrderNumberGenerator orderNumberGenerator,
+        IOrderStatusAuditRepository auditRepository)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _orderNumberGenerator = orderNumberGenerator;
+        _auditRepository = auditRepository;
     }
 
     public async Task<Order> CreateOrderAsync(string userId, Dictionary<Guid, int> productQuantities)
@@ -57,15 +62,57 @@ public class OrderService : IOrderService
         return await _orderRepository.GetAllAsync();
     }
 
-    public async Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status)
+
+    public async Task UpdateOrderStatusAsync(
+        Guid orderId,
+        OrderStatus status,
+        string changedBy)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
 
         if (order == null)
-            throw new InvalidOperationException("Order not found");
+            throw new InvalidOperationException("Order not found.");
 
-        order.UpdateStatus(status);
+        order.UpdateStatus(status, changedBy);
 
         await _orderRepository.SaveChangesAsync();
     }
+
+
+
+
+    public async Task<PagedResult<Order>> GetAdminOrdersAsync(AdminOrderQueryDto query)
+    {
+        var orders = (await _orderRepository.GetAllAsync()).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
+        {
+            orders = orders.Where(o =>
+                o.OrderNumber.Contains(query.SearchTerm) ||
+                o.UserId.Contains(query.SearchTerm));
+        }
+
+        if (query.Status.HasValue)
+        {
+            orders = orders.Where(o => o.Status == query.Status.Value);
+        }
+
+        var totalCount = orders.Count();
+
+        var items = orders
+            .OrderByDescending(o => o.OrderDate)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
+        return new PagedResult<Order>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = query.Page,
+            PageSize = query.PageSize
+        };
+    }
+
+
 }

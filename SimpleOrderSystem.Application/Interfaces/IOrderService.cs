@@ -1,6 +1,7 @@
 ﻿
 using SimpleOrderSystem.Domain.Entities;
 using SimpleOrderSystem.Domain.Enums;
+using SimpleOrderSystem.Application.DTOs;
 
 
 namespace SimpleOrderSystem.Application.Interfaces
@@ -10,6 +11,10 @@ namespace SimpleOrderSystem.Application.Interfaces
         Task<Order> CreateOrderAsync(string userId, Dictionary<Guid, int> productQuantities);
         Task<IEnumerable<Order>> GetOrdersForUserAsync(string userId);
         Task<IEnumerable<Order>> GetAllOrdersAsync();
-        Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status);
+        Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status, string changedBy);
+
+
+        //Extend Order Service Contract
+        Task<PagedResult<Order>> GetAdminOrdersAsync(AdminOrderQueryDto query);
     }
 }

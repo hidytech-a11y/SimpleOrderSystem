@@ -1,0 +1,23 @@
+﻿@model IEnumerable<SimpleOrderSystem.Domain.Entities.OrderStatusAudit>
+
+<table class="table table-sm table-bordered mt-3">
+    <thead class="table-light">
+        <tr>
+            <th>Changed By</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var audit in Model)
+        {
+            <tr>
+                <td>@audit.ChangedBy</td>
+                <td>@audit.OldStatus</td>
+                <td>@audit.NewStatus</td>
+                <td>@audit.ChangedAt.ToLocalTime()</td>
+            </tr>
+        }
+    </tbody>
+</table>

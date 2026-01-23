@@ -1,5 +1,11 @@
-﻿@using SimpleOrderSystem.Domain.Enums
-@model IEnumerable<SimpleOrderSystem.Domain.Entities.Order>
+﻿@model IEnumerable<SimpleOrderSystem.Domain.Entities.Order>
+
+@using SimpleOrderSystem.Domain.Enums
+@using SimpleOrderSystem.Web.Extensions
+
+@{
+    ViewData["Title"] = "My Orders";
+}
 
 <div class="container mt-4">
     <h2 class="mb-4">My Orders</h2>
@@ -15,19 +21,20 @@
         <div class="accordion" id="ordersAccordion">
             @foreach (var order in Model)
             {
-                <div class="accordion-item mb-2">
+                <div class="accordion-item mb-3">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed"
+                        <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#order-@order.Id">
-                            <strong>@order.OrderNumber</strong>
-                            &nbsp; — @order.OrderDate.ToShortDateString()
-                            &nbsp; — ₦@order.TotalAmount.ToString("N2")
 
-                            <span class="badge ms-2
-                                        @(order.Status == OrderStatus.Completed ? "bg-success" :
-                                                                    order.Status == OrderStatus.Cancelled ? "bg-danger" : "bg-warning")">
+                            <span>
+                                <strong>@order.OrderNumber</strong>
+                                &nbsp; — @order.OrderDate.ToShortDateString()
+                                &nbsp; — ₦@order.TotalAmount.ToString("N2")
+                            </span>
+
+                            <span class="badge ms-3 @order.Status.ToBadgeClass()">
                                 @order.Status
                             </span>
                         </button>
@@ -37,10 +44,14 @@
                          class="accordion-collapse collapse">
                         <div class="accordion-body">
 
-                            <table class="table table-sm table-bordered">
+                            <!-- ORDER TIMELINE -->
+                            <partial name="_OrderTimeline" model="order.Status" />
+
+                            <!-- ORDER ITEMS -->
+                            <table class="table table-sm table-bordered mt-3">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Product ID</th>
+                                        <th>Product</th>
                                         <th class="text-center">Quantity</th>
                                         <th class="text-end">Unit Price</th>
                                         <th class="text-end">Total</th>
@@ -52,9 +63,12 @@
                                         <tr>
                                             <td>@item.ProductId</td>
                                             <td class="text-center">@item.Quantity</td>
-                                            <td class="text-end">₦@item.UnitPrice.ToString("N2")</td>
                                             <td class="text-end">
-                                                ₦@(item.Quantity* item.UnitPrice) </td>
+                                                ₦@item.UnitPrice.ToString("N2")
+                                            </td>
+                                            <td class="text-end"> 
+                                                ₦@(item.Quantity* item.UnitPrice) 
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>

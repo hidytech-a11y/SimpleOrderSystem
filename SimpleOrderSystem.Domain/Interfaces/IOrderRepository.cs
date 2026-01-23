@@ -9,7 +9,8 @@ namespace SimpleOrderSystem.Domain.Interfaces
 
         Task<IEnumerable<Order>> GetAllAsync();
 
-        Task<Order> GetByIdAsync(Guid id);
+        Task<Order?> GetByIdAsync(Guid id);
         Task SaveChangesAsync();
+
     }
 }
