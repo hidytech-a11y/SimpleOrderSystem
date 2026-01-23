@@ -12,8 +12,8 @@ using SimpleOrderSystem.Infrastructure.Data;
 namespace SimpleOrderSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260123124724_AddFixGuidKeyGeneration")]
-    partial class AddFixGuidKeyGeneration
+    [Migration("20260123175321_CleanFinalModel")]
+    partial class CleanFinalModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -289,7 +289,8 @@ namespace SimpleOrderSystem.Infrastructure.Migrations
 
                     b.Property<string>("ChangedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("NewStatus")
                         .HasColumnType("int");

@@ -9,6 +9,7 @@ public class Order
     public string UserId { get; private set; } = string.Empty;
     public DateTime OrderDate { get; private set; }
     public decimal TotalAmount { get; private set; }
+    public OrderStatus Status { get; private set; }
 
     private readonly List<OrderItem> _orderItems = new();
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
@@ -16,9 +17,7 @@ public class Order
     private readonly List<OrderStatusAudit> _statusAudits = new();
     public IReadOnlyCollection<OrderStatusAudit> StatusAudits => _statusAudits;
 
-    public OrderStatus Status { get; private set; }
-
-    private Order() { } // EF Core
+    private Order() { }
 
     public Order(string orderNumber, string userId)
     {
@@ -29,17 +28,16 @@ public class Order
         Status = OrderStatus.Pending;
     }
 
-    /* ===============================
-     * STATUS UPDATE (WITH AUDIT)
-     * =============================== */
+    public void AddItem(Guid productId, int quantity, decimal unitPrice)
+    {
+        _orderItems.Add(new OrderItem(productId, quantity, unitPrice));
+        RecalculateTotal();
+    }
+
     public void UpdateStatus(OrderStatus newStatus, string changedBy)
     {
         if (Status == OrderStatus.Completed || Status == OrderStatus.Cancelled)
-            throw new InvalidOperationException(
-                "Completed or cancelled orders cannot be modified.");
-
-        if (Status == newStatus)
-            return;
+            throw new InvalidOperationException("Finalized orders cannot be changed.");
 
         var oldStatus = Status;
         Status = newStatus;
@@ -49,16 +47,6 @@ public class Order
             changedBy,
             oldStatus,
             newStatus));
-    }
-
-    /* ===============================
-     * ORDER ITEMS
-     * =============================== */
-    public void AddItem(Guid productId, int quantity, decimal unitPrice)
-    {
-        var item = new OrderItem(productId, quantity, unitPrice);
-        _orderItems.Add(item);
-        RecalculateTotal();
     }
 
     private void RecalculateTotal()

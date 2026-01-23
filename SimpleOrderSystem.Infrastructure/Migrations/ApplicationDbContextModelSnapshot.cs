@@ -286,7 +286,8 @@ namespace SimpleOrderSystem.Infrastructure.Migrations
 
                     b.Property<string>("ChangedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("NewStatus")
                         .HasColumnType("int");

@@ -1,5 +1,6 @@
 ﻿@model SimpleOrderSystem.Domain.Enums.OrderStatus
 @using SimpleOrderSystem.Domain.Enums
+@using SimpleOrderSystem.Domain.Entities
 @using SimpleOrderSystem.Web.Extensions
 
 @{
@@ -11,8 +12,12 @@
         OrderStatus.Shipped,
         OrderStatus.Completed
     };
+
+    // Optional audit history (passed via ViewData)
+    var audits = ViewData["Audits"] as IReadOnlyCollection<OrderStatusAudit>;
 }
 
+<!-- STATUS PROGRESSION -->
 <div class="d-flex justify-content-between align-items-center my-2">
     @foreach (var step in steps)
     {
@@ -25,3 +30,28 @@
         </div>
     }
 </div>
+
+<!-- STATUS AUDIT HISTORY (ADMIN ONLY / OPTIONAL) -->
+@if (audits != null && audits.Any())
+{
+    <div class="mt-3">
+        <h6 class="text-muted">Status History</h6>
+
+        <ul class="list-group list-group-flush">
+            @foreach (var audit in audits.OrderByDescending(a => a.ChangedAt))
+            {
+                <li class="list-group-item px-0">
+                    <strong>@audit.ChangedBy</strong>
+                    changed status from
+                    <span class="badge bg-secondary">@audit.OldStatus</span>
+                    →
+                    <span class="badge bg-primary">@audit.NewStatus</span>
+                    <br />
+                    <small class="text-muted">
+                        @audit.ChangedAt.ToLocalTime()
+                    </small>
+                </li>
+            }
+        </ul>
+    </div>
+}

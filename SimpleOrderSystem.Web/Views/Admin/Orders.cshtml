@@ -72,7 +72,10 @@
                          class="accordion-collapse collapse">
                         <div class="accordion-body">
 
-                            <!-- ORDER TIMELINE -->
+                            <!-- ORDER TIMELINE + AUDIT HISTORY -->
+                            @{
+                                ViewData["Audits"] = order.StatusAudits;
+                            }
                             <partial name="_OrderTimeline" model="order.Status" />
 
                             <!-- ORDER ITEMS -->
@@ -103,38 +106,42 @@
                             </table>
 
                             <!-- UPDATE STATUS -->
-                            <form asp-action="UpdateOrderStatus"
-                                  method="post"
-                                  class="d-flex align-items-center gap-2 mt-3">
+                            @if (order.Status != OrderStatus.Completed &&
+                                                order.Status != OrderStatus.Cancelled)
+                            {
+                                <form asp-action="UpdateOrderStatus"
+                                      method="post"
+                                      class="d-flex align-items-center gap-2 mt-3">
 
-                                @Html.AntiForgeryToken()
+                                    @Html.AntiForgeryToken()
 
-                                <input type="hidden"
-                                       name="orderId"
-                                       value="@order.Id" />
+                                    <input type="hidden"
+                                           name="orderId"
+                                           value="@order.Id" />
 
-                                <select name="status"
-                                        class="form-select form-select-sm w-auto">
-                                    @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
-                                    {
-                                        <option value="@s"
-                                                selected="@(s == order.Status)">
-                                            @s
-                                        </option>
-                                    }
-                                </select>
+                                    <select name="status"
+                                            class="form-select form-select-sm w-auto">
+                                        @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                                        {
+                                            <option value="@s"
+                                                    selected="@(s == order.Status)">
+                                                @s
+                                            </option>
+                                        }
+                                    </select>
 
-                                <button type="submit"
-                                        class="btn btn-sm btn-primary">
-                                    Update Status
-                                </button>
-                            </form>
-
-                            <!-- AUDIT HISTORY -->
-                            <h6 class="mt-4 text-muted">Status Change History</h6>
-                            <partial name="_OrderAuditHistory"
-                                     model="order.StatusAudits" />
-
+                                    <button type="submit"
+                                            class="btn btn-sm btn-primary">
+                                        Update Status
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="mt-3 text-muted fst-italic">
+                                    This order is in a final state and cannot be updated.
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
