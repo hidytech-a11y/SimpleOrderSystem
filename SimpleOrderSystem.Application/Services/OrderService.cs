@@ -66,18 +66,23 @@ public class OrderService : IOrderService
     public async Task UpdateOrderStatusAsync(
         Guid orderId,
         OrderStatus status,
-        string changedBy)
+        string changedBy,
+        byte[] rowVersion)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
 
         if (order == null)
             throw new InvalidOperationException("Order not found.");
 
+        // 🔐 Optimistic Concurrency
+        // Set the RowVersion property directly for concurrency check
+        if (!order.RowVersion.SequenceEqual(rowVersion))
+            throw new InvalidOperationException("The order was modified by another process.");
+
         order.UpdateStatus(status, changedBy);
 
         await _orderRepository.SaveChangesAsync();
     }
-
 
 
 

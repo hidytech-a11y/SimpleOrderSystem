@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SimpleOrderSystem.Application.DTOs;
 using SimpleOrderSystem.Application.Interfaces;
-using SimpleOrderSystem.Application.Services;
 using SimpleOrderSystem.Domain.Enums;
 using System.Security.Claims;
 
@@ -62,27 +61,28 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status)
+    public async Task<IActionResult> UpdateOrderStatus(Guid orderId, OrderStatus status, string? rowVersion)
     {
-        // Ensure we provide a non-null changedBy to avoid inserting a null into
-        // the non-nullable ChangedBy column (prevents DB update failures).
         var changedBy = User?.Identity?.Name;
-
         if (string.IsNullOrWhiteSpace(changedBy))
         {
-            // Prefer email claim, then name identifier, then fallback to "System"
             changedBy = User?.FindFirst(ClaimTypes.Email)?.Value
                         ?? User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
                         ?? "System";
         }
 
+        var rowVersionBytes = Array.Empty<byte>();
+        if (!string.IsNullOrEmpty(rowVersion))
+        {
+            rowVersionBytes = Convert.FromBase64String(rowVersion);
+        }
+
         await _orderService.UpdateOrderStatusAsync(
             orderId,
             status,
-            changedBy);
+            changedBy,
+            rowVersionBytes);
 
         return RedirectToAction(nameof(Orders));
     }
-
-
 }

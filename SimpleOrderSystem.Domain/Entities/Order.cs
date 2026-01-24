@@ -9,7 +9,9 @@ public class Order
     public string UserId { get; private set; } = string.Empty;
     public DateTime OrderDate { get; private set; }
     public decimal TotalAmount { get; private set; }
-    public OrderStatus Status { get; private set; }
+
+    // RowVersion for optimistic concurrency
+    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
     private readonly List<OrderItem> _orderItems = new();
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
@@ -17,7 +19,9 @@ public class Order
     private readonly List<OrderStatusAudit> _statusAudits = new();
     public IReadOnlyCollection<OrderStatusAudit> StatusAudits => _statusAudits;
 
-    private Order() { }
+    public OrderStatus Status { get; private set; }
+
+    private Order() { } // EF Core
 
     public Order(string orderNumber, string userId)
     {

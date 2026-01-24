@@ -7,6 +7,14 @@
     ViewData["Title"] = "Admin — Manage Orders";
 }
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["Error"]
+    </div>
+}
+
+
 <div class="container mt-4">
     <h2 class="mb-4 text-danger">Admin — Manage Orders</h2>
 
@@ -119,8 +127,12 @@
                                            name="orderId"
                                            value="@order.Id" />
 
-                                    <select name="status"
-                                            class="form-select form-select-sm w-auto">
+    <input type="hidden"
+           name="rowVersion"
+           value="@(Convert.ToBase64String(order.RowVersion))" />
+
+    <select name="status"
+            class="form-select form-select-sm w-auto">
                                         @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
                                         {
                                             <option value="@s"

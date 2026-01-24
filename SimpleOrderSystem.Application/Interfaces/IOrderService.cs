@@ -11,10 +11,16 @@ namespace SimpleOrderSystem.Application.Interfaces
         Task<Order> CreateOrderAsync(string userId, Dictionary<Guid, int> productQuantities);
         Task<IEnumerable<Order>> GetOrdersForUserAsync(string userId);
         Task<IEnumerable<Order>> GetAllOrdersAsync();
-        Task UpdateOrderStatusAsync(Guid orderId, OrderStatus status, string changedBy);
 
 
         //Extend Order Service Contract
         Task<PagedResult<Order>> GetAdminOrdersAsync(AdminOrderQueryDto query);
+
+        Task UpdateOrderStatusAsync(
+            Guid orderId,
+            OrderStatus status,
+            string changedBy,
+            byte[] rowVersion);
+
     }
 }
